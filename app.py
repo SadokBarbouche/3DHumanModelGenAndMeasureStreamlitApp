@@ -1,4 +1,3 @@
-import pyvista as pv
 import streamlit as st
 from stpyvista import stpyvista
 from model_generator import *
