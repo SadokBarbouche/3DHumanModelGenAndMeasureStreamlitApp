@@ -26,6 +26,7 @@ def generate_model(sex, bust, underbust, waist, hip, neckgirth, insideleg, shoul
     item_value = driver.execute_script('return window.localStorage.getItem("exportedObj");')
     file_path = "tmp/exported_obj.obj"
     with open(file_path, "w") as file:
-        file.write(item_value)
+        if item_value is not None:
+            file.write(item_value)
     driver.quit()
     return file_path
