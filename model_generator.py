@@ -16,7 +16,7 @@ def generate_url(sex=0, bust=90.4, underbust=80.6, waist=80.2, hip=98.3, neckgir
     return url
 
 
-@st.cache_data
+@st.cache
 def generate_model(sex, bust, underbust, waist, hip, neckgirth, insideleg, shoulder, bodyheight):
     chrome_options = Options()
     chrome_options.add_argument("--headless")  # Run Chrome in headless mode
