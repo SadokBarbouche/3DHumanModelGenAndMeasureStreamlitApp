@@ -1,4 +1,4 @@
-import streamlit as st
+wffiimport streamlit as st
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
@@ -24,7 +24,7 @@ def generate_model(sex, bust, underbust, waist, hip, neckgirth, insideleg, shoul
     url = generate_url(sex=sex, bust=bust, underbust=underbust, waist=waist, hip=hip, neckgirth=neckgirth, insideleg=insideleg, shoulder=shoulder, bodyheight=bodyheight)
     driver.get(url)
     item_value = driver.execute_script('return window.localStorage.getItem("exportedObj");')
-    file_path = "./exported_obj.obj"
+    file_path = "tmp/exported_obj.obj"
     with open(file_path, "w") as file:
         file.write(item_value)
     driver.quit()
