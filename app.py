@@ -1,9 +1,10 @@
+import pyvista as pv
 import streamlit as st
+from stpyvista import stpyvista
 from model_generator import *
 from measures import *
 from streamlit.components.v1 import components
 import numpy as np
-from stpyvista import stpyvista
 
 
 def get_uploaded_file_path(uploaded_file):
