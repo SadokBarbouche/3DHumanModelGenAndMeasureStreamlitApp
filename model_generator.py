@@ -16,17 +16,10 @@ def generate_url(sex=0, bust=90.4, underbust=80.6, waist=80.2, hip=98.3, neckgir
     return url
 
 
-@st.cache
-def generate_model(sex, bust, underbust, waist, hip, neckgirth, insideleg, shoulder, bodyheight):
+@st.cache_data
+def generate_model(url):
     chrome_options = Options()
     chrome_options.add_argument("--headless")  # Run Chrome in headless mode
     driver = webdriver.Chrome(options=chrome_options)
-    url = generate_url(sex=sex, bust=bust, underbust=underbust, waist=waist, hip=hip, neckgirth=neckgirth, insideleg=insideleg, shoulder=shoulder, bodyheight=bodyheight)
     driver.get(url)
-    item_value = driver.execute_script('return window.localStorage.getItem("exportedObj");')
-    file_path = "tmp/exported_obj.obj"
-    with open(file_path, "w") as file:
-        if item_value is not None:
-            file.write(item_value)
     driver.quit()
-    return file_path
