@@ -5,11 +5,10 @@ from model_generator import *
 from measures import *
 from streamlit.components.v1 import components
 import numpy as np
-import globals
 import requests
-import asyncio
 from streamlit_lottie import st_lottie
 import json
+import globals
 
 def load_lottiefile(filepath: str):
     with open(filepath, "r",encoding="utf-8") as f:
@@ -61,11 +60,18 @@ def main():
             height: 75vh;
             display: flex;
             justify-content: center;
+            flex-direction: column;
             align-items: center;
             font-size: 5rem;
-            background-image: url('./assets/background.png');
-            background-size: cover;
+            font-weight: bold;
 
+        }
+        .fullscreen-text > p {
+            font-size: 1.25rem;
+            align-items: center;
+            text-align: center;
+            color: #a8a5ac
+        }
         }
         </style>
         """,
@@ -75,8 +81,28 @@ def main():
     
 
 
-    st.markdown('<div class="fullscreen-text">AI Tailor</div>', unsafe_allow_html=True)
+    st.markdown('<div class="fullscreen-text">AI Tailor<p><br>AI Tailor web service is now available for integration, allowing you to easily incorporate our AI-powered body measurements into your app or platform. With our service, you can provide your users with accurate and convenient measurements of their height, waist, hip, and chest circumference and much more.</p></div>', unsafe_allow_html=True)
 
+    with st.sidebar:
+        lottie_coding = load_lottiefile("./assets/tailor.json") 
+        lottie_hello = load_lottieurl("https://assets9.lottiefiles.com/private_files/lf30_coy8mzqf.json")
+
+        
+        
+        st_lottie(
+        lottie_hello,
+        speed=1,
+        reverse=False,
+        loop=True,
+        quality="low", # medium ; high
+        height=None,
+        width=None,
+        key=None,
+        
+        )
+
+
+    
     hide_streamlit_style = """
             <style>
             footer {visibility: hidden;}
@@ -109,9 +135,7 @@ def main():
     st.title("3D Human Model Generator")
     st.info('This is a demo of the alpha version of the 3D Human Model Generator. It is pretty \nslow but it is a proof of concept. The final version will be much faster and will \nhave more features.', icon="🚨")
     st.text('\n')
-    st.warning(
-               'Can be a little bit slow since it uses webscrapping inorder to generate the body ! Check the source code in the github repo in case you have an idea to fix it.'
-               , icon="⚠️")
+    
     st.text('\n')
     
 
@@ -126,7 +150,8 @@ def main():
             
             model_input = []
             test1 , test2 = False, False
-            globals.gender = st.selectbox("Sex", ["Female", "Male"])
+            gender = st.selectbox("Sex", ["Female", "Male"])
+            globals.shoulder_width = st.text_input("Real shoulder width (in cm)")
             verify = st.form_submit_button("Generate my 3D model (.obj)")
             sex, bust, underbust, waist, hip, neckgirth, insideleg, shoulder, bodyheight = 0, 0, 0, 0, 0, 0, 0, 0, 0
             if verify:
@@ -135,16 +160,16 @@ def main():
                 else:
                     front_body, front_infos = process(
                         image=get_uploaded_file_path(front))
-
+                    sex = 0 if gender == "Female" else 1
                     if front_infos['is_backward'] == False and front_infos['orientation'][0] == "NO ORIENTATION" and front_infos['is_valid'] == True and front_infos['pose'] == "A Pose":
                         test1 = True
                         st.write("Front image is valid ✅")
                         front_expander = st.expander("See more front image infos:")
                         front_expander.write(front_infos)
-                        model_input = list(front_infos["real_body_measurements"].values())
+                        model_input = [gender]+list(front_infos["real_body_measurements"].values())
                         print(model_input)
                         sex, bust, underbust, waist, hip, neckgirth, insideleg, shoulder, bodyheight = model_input
-                                                
+                                 
                     else:
                         st.write(
                             "Front image is not valid , please reupload a valid image")
@@ -163,7 +188,7 @@ def main():
 
     with col2:
         lottie_coding = load_lottiefile("./assets/form.json") 
-        lottie_hello = load_lottieurl("https://assets7.lottiefiles.com/packages/lf20_HVKweQ1XxC.json")
+        lottie_hello = load_lottieurl("https://assets7.lottiefiles.com/private_files/lf30_dmituz7c.json")
 
         st_lottie(
         lottie_hello,
@@ -223,10 +248,14 @@ def main():
                 generate_model(url)
 
     st.title("Visualize my 3D model")
-    
+    st.warning('''
+    1️⃣ Download the .obj file generated from the previous step or simply upload yours\n
+    2️⃣ Upload it and wait for a second\n
+    3️⃣ Bingo !
+    ''')
 
     st.sidebar.title(
-        "Alpha Version of the 3D Human Model Generator/ Measurement Tool"
+        "𝜶 Version of the 3D Human Model Generator/ Measurement Tool"
         )
     st.sidebar.markdown(
         "Created by: [@Sadok Barbouche](https://sadokbarbouche.github.io/myPortfolio)"

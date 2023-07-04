@@ -1,1 +1,1 @@
-C:\Users\SadokBarbouche\myenv\Scripts
+C:\Users\SadokBarbouche\myenv\Scripts\activate

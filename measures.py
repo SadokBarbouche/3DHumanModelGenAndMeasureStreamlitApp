@@ -4,9 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import mediapipe as mp
-import math
 import globals
-
 # We could use the std math library and it is faster in our case but for the sake of SIMD we will be using numpy (Optimization for later uses)
 # Using a class for later imports
 
@@ -242,7 +240,38 @@ class Pose_Detection_Toolkit:
 
         return True
 
-    
+    def get_real_measurements(self, results, vectors, real_shoulder_width):
+
+        landmarks = results.pose_landmarks
+        mph_landmarks = mp_holistic.PoseLandmark
+        pixel_to_real_ratio = real_shoulder_width / \
+            self.norm(vectors['right_shoulder_left_shoulder'])
+        print(pixel_to_real_ratio)
+        print(self.norm(vectors['right_shoulder_left_shoulder']))
+        # Calculate real measurements
+        bust = self.distance(
+            vectors['shoulder_hip'][0], vectors['shoulder_hip'][1]) * pixel_to_real_ratio
+        underbust = bust * 0.85
+        waist = bust * 0.7
+        hip = bust * 0.95
+        neckgirth = self.distance(
+            vectors['shoulder_elbow'][0], vectors['shoulder_elbow'][1]) * pixel_to_real_ratio
+        insideleg = self.distance(
+            vectors['hip_knee'][0], vectors['hip_knee'][1]) * pixel_to_real_ratio
+        shoulder = self.distance(
+            vectors['shoulder_elbow'][0], vectors['shoulder_elbow'][1]) * pixel_to_real_ratio
+
+        # Ensure the values are within the specified ranges
+        bust = max(min(bust, 113.0), 79.0)
+        underbust = max(min(underbust, 101.0), 70.0)
+        waist = max(min(waist, 113.0), 52.0)
+        hip = max(min(hip, 121.0), 79.0)
+        neckgirth = max(min(neckgirth, 45.0), 29.0)
+        insideleg = max(min(insideleg, 95.0), 65.0)
+        shoulder = max(min(shoulder, 60.0), 29.0)
+        bodyheight = 180.0
+        return {"bust": bust, "underbust": underbust, "waist": waist, "hip": hip, "neckgirth": neckgirth, "insideleg": insideleg, "shoulder": shoulder, "bodyheight": bodyheight}
+
 
 class Body:
     def __init__(self, **kwargs):
@@ -401,6 +430,7 @@ def process(image=None):
                 'vectors': vectors,
                 'image_height': image.shape[0],
                 'image_width': image.shape[1],
+                'real_body_measurements': pdtk.get_real_measurements(results, vectors, float(globals.shoulder_width))
             }
-
+            print("aa! " + str(float(globals.shoulder_width)))
             return body, infos
