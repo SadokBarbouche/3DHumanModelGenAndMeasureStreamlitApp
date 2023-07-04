@@ -33,6 +33,7 @@ def get_uploaded_file_path(uploaded_file):
 
 
 def show_model(path):
+    pv.set_jupyter_backend('panel')
     pv.global_theme.show_scalar_bar = False
     if "pv_model" in st.session_state:
         del st.session_state["pv_model"]    
