@@ -51,6 +51,8 @@ def show_model(path):
 def main():
     st.set_page_config(initial_sidebar_state="collapsed")
     
+
+
     st.markdown(
         """
         <style>
@@ -65,13 +67,16 @@ def main():
             align-items: center;
             font-size: 5rem;
             font-weight: bold;
-
+            background-image : url('https://i.pinimg.com/564x/66/cb/b7/66cbb722e0fc6f1b9d2693b4f1e285c4.jpg');
+            background-repeat: no-repeat;
+            background-size: 115%;
+            background-position: center;
         }
         .fullscreen-text > p {
             font-size: 1.25rem;
             align-items: center;
             text-align: center;
-            color: #a8a5ac
+            color: #211f2a;
         }
         }
         </style>
@@ -170,6 +175,8 @@ def main():
                         model_input = [gender]+list(front_infos["real_body_measurements"].values())
                         print(model_input)
                         sex, bust, underbust, waist, hip, neckgirth, insideleg, shoulder, bodyheight = model_input
+                        url = generate_url(sex, bust, underbust, waist, hip, neckgirth, insideleg, shoulder, bodyheight)
+                        generate_model(url)
                                  
                     else:
                         st.write(
@@ -245,7 +252,6 @@ def main():
             if submitted:
                 print(bodyheight)
                 url = generate_url(sex, bust, underbust, waist, hip, neckgirth, insideleg, shoulder, bodyheight)
-                print(url)
                 generate_model(url)
 
     st.title("Visualize my 3D model")
@@ -256,7 +262,7 @@ def main():
     ''')
 
     st.sidebar.title(
-        "𝜶 Version of the 3D Human Model Generator/ Measurement Tool"
+        "α Version of the 3D Human Model Generator/ Measurement Tool"
         )
     st.sidebar.markdown(
         "Created by: [@Sadok Barbouche](https://sadokbarbouche.github.io/myPortfolio)"
@@ -265,9 +271,10 @@ def main():
          "[👨‍💻 Source code:](https://github.com/SadokBarbouche/3DHumanModelGenAndMeasureStreamlitApp)"
         )
     st.sidebar.info('We are working on making the input from the camera !', icon="⚠️")
-    visualize = st.file_uploader("Upload your generated model ", type=[
-                                    'png', 'jpg', 'jpeg'])
-
+    visualize = st.file_uploader("Upload your generated model ", type=['obj'])
+    if visualize :
+        show_model(get_uploaded_file_path(visualize))
+    
 
 if __name__ == "__main__":
     main()
