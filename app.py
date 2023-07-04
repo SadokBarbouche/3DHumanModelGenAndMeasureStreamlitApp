@@ -265,7 +265,8 @@ def main():
          "[👨‍💻 Source code:](https://github.com/SadokBarbouche/3DHumanModelGenAndMeasureStreamlitApp)"
         )
     st.sidebar.info('We are working on making the input from the camera !', icon="⚠️")
-
+    visualize = st.file_uploader("Upload your generated model ", type=[
+                                    'png', 'jpg', 'jpeg'])
 
 
 if __name__ == "__main__":
