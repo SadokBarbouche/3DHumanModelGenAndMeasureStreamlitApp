@@ -241,13 +241,11 @@ class Pose_Detection_Toolkit:
         return True
 
     def get_real_measurements(self, results, vectors, real_shoulder_width):
-
         landmarks = results.pose_landmarks
         mph_landmarks = mp_holistic.PoseLandmark
         pixel_to_real_ratio = real_shoulder_width / \
             self.norm(vectors['right_shoulder_left_shoulder'])
         print(pixel_to_real_ratio)
-        print(self.norm(vectors['right_shoulder_left_shoulder']))
         # Calculate real measurements
         bust = self.distance(
             vectors['shoulder_hip'][0], vectors['shoulder_hip'][1]) * pixel_to_real_ratio
@@ -270,7 +268,15 @@ class Pose_Detection_Toolkit:
         insideleg = max(min(insideleg, 95.0), 65.0)
         shoulder = max(min(shoulder, 60.0), 29.0)
         bodyheight = 180.0
-        return {"bust": bust, "underbust": underbust, "waist": waist, "hip": hip, "neckgirth": neckgirth, "insideleg": insideleg, "shoulder": shoulder, "bodyheight": bodyheight}
+        return {"bust": bust,
+                "underbust": underbust,
+                "waist": waist,
+                "hip": hip,
+                "neckgirth": neckgirth,
+                "insideleg": insideleg,
+                "shoulder": shoulder,
+                "bodyheight": bodyheight
+                }
 
 
 class Body:

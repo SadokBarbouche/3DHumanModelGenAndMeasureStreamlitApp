@@ -10,6 +10,10 @@ from streamlit_lottie import st_lottie
 import json
 import globals
 
+
+
+
+
 def load_lottiefile(filepath: str):
     with open(filepath, "r",encoding="utf-8") as f:
         return json.load(f)
@@ -33,7 +37,6 @@ def get_uploaded_file_path(uploaded_file):
 
 
 def show_model(path):
-    pv.set_jupyter_backend('panel')
     pv.global_theme.show_scalar_bar = False
     if "pv_model" in st.session_state:
         del st.session_state["pv_model"]    
@@ -50,8 +53,6 @@ def show_model(path):
     
 def main():
     st.set_page_config(initial_sidebar_state="collapsed")
-    
-
 
     st.markdown(
         """
@@ -88,7 +89,8 @@ def main():
 
 
     st.markdown('<div class="fullscreen-text">AI Tailor<p><br>AI Tailor web service is now available for integration, allowing you to easily incorporate our AI-powered body measurements into your app or platform. With our service, you can provide your users with accurate and convenient measurements of their height, waist, hip, and chest circumference and much more.</p></div>', unsafe_allow_html=True)
-
+    
+    
     with st.sidebar:
         lottie_coding = load_lottiefile("./assets/tailor.json") 
         lottie_hello = load_lottieurl("https://assets9.lottiefiles.com/private_files/lf30_coy8mzqf.json")
@@ -262,19 +264,22 @@ def main():
     ''')
 
     st.sidebar.title(
+        
         "α Version of the 3D Human Model Generator/ Measurement Tool"
         )
     st.sidebar.markdown(
+
         "Created by: [@Sadok Barbouche](https://sadokbarbouche.github.io/myPortfolio)"
         )
     st.sidebar.markdown(
+        
          "[👨‍💻 Source code:](https://github.com/SadokBarbouche/3DHumanModelGenAndMeasureStreamlitApp)"
         )
     st.sidebar.info('We are working on making the input from the camera !', icon="⚠️")
     visualize = st.file_uploader("Upload your generated model ", type=['obj'])
     if visualize :
         show_model(get_uploaded_file_path(visualize))
-    
+
 
 if __name__ == "__main__":
     main()
