@@ -10,6 +10,9 @@ import globals
 
 
 class Pose_Detection_Toolkit:
+    def eclipse_circumference(self, a, b):
+        h = ((a - b)/(a + b)) ** 2
+        return np.pi * (a+b) * (1 + (3*h / (10 + np.sqrt(4 - 3 * h))))
 
     def distance(self, vector1, vector2):
         return np.linalg.norm(vector1 - vector2)  # Euclidean Norm / Norme 2
@@ -138,6 +141,7 @@ class Pose_Detection_Toolkit:
             "footindex_ankle": np.array([[footindex_ankle_left_x * image_width, footindex_ankle_left_y * image_height],
                                          [footindex_ankle_right_x * image_width, footindex_ankle_right_y * image_height]]),
             "right_shoulder_left_shoulder": np.array([right_shoulder_left_shoulder_x * image_width, right_shoulder_left_shoulder_y * image_height]),
+            "right_hip_left_hip": abs(landmarks.landmark[mph_landmarks.LEFT_HIP].x - landmarks.landmark[mph_landmarks.RIGHT_HIP].x) * image_width,
             "footindex_heel": np.array([[footindex_heel_left_x * image_width, footindex_heel_left_y * image_height], [footindex_heel_right_x * image_width, footindex_heel_right_y * image_height]])
         }
         # [0] for the left
@@ -172,7 +176,7 @@ class Pose_Detection_Toolkit:
 
         # Verifying the shoulders and the knees angles
         if 150 < angle_ew_se_left < 180 and 150 < angle_ew_se_right < 180 and 140 < angle_hk_ka_left < 180 and 140 < angle_hk_ka_right < 180:
-            if 40 < angle_se_sh_left < 70 and 40 < angle_se_sh_right < 70:
+            if 30 < angle_se_sh_left < 70 and 30 < angle_se_sh_right < 70:
                 return "A Pose"
             elif 70 <= angle_se_sh_left < 110 and 70 <= angle_se_sh_right < 110:
                 return "T Pose"
@@ -198,8 +202,8 @@ class Pose_Detection_Toolkit:
         # This value is set by observation of some examples of correct and icorrect poses and can/should be corrected
         hand_threshold = 0.10898104310035706
 
-        hand_test = 0.105 <= max(abs(landmarks.landmark[mph_landmarks.RIGHT_THUMB].x - landmarks.landmark[mph_landmarks.RIGHT_HIP].x),
-                                 abs(landmarks.landmark[mph_landmarks.LEFT_THUMB].x - landmarks.landmark[mph_landmarks.LEFT_HIP].x)) <= 0.109
+        hand_test = max(abs(landmarks.landmark[mph_landmarks.RIGHT_THUMB].x - landmarks.landmark[mph_landmarks.RIGHT_HIP].x),
+                        abs(landmarks.landmark[mph_landmarks.LEFT_THUMB].x - landmarks.landmark[mph_landmarks.LEFT_HIP].x)) <= 0.109+hand_threshold
 
         ans = []
 
@@ -239,44 +243,115 @@ class Pose_Detection_Toolkit:
                 return False
 
         return True
+    # Sex is also an input !!
+    # Shoulder width is also an input !!
 
     def get_real_measurements(self, results, vectors, real_shoulder_width):
+
         landmarks = results.pose_landmarks
         mph_landmarks = mp_holistic.PoseLandmark
-        pixel_to_real_ratio = real_shoulder_width / \
+        scale = real_shoulder_width / \
             self.norm(vectors['right_shoulder_left_shoulder'])
-        print(pixel_to_real_ratio)
-        # Calculate real measurements
-        bust = self.distance(
-            vectors['shoulder_hip'][0], vectors['shoulder_hip'][1]) * pixel_to_real_ratio
-        underbust = bust * 0.85
-        waist = bust * 0.7
-        hip = bust * 0.95
-        neckgirth = self.distance(
-            vectors['shoulder_elbow'][0], vectors['shoulder_elbow'][1]) * pixel_to_real_ratio
-        insideleg = self.distance(
-            vectors['hip_knee'][0], vectors['hip_knee'][1]) * pixel_to_real_ratio
-        shoulder = self.distance(
-            vectors['shoulder_elbow'][0], vectors['shoulder_elbow'][1]) * pixel_to_real_ratio
+        print(
+            f'Real shoulder width = {real_shoulder_width} /Norm in the pic {self.norm(vectors["right_shoulder_left_shoulder"])} = {scale}')
 
-        # Ensure the values are within the specified ranges
-        bust = max(min(bust, 113.0), 79.0)
-        underbust = max(min(underbust, 101.0), 70.0)
-        waist = max(min(waist, 113.0), 52.0)
-        hip = max(min(hip, 121.0), 79.0)
-        neckgirth = max(min(neckgirth, 45.0), 29.0)
-        insideleg = max(min(insideleg, 95.0), 65.0)
-        shoulder = max(min(shoulder, 60.0), 29.0)
-        bodyheight = 180.0
-        return {"bust": bust,
-                "underbust": underbust,
-                "waist": waist,
-                "hip": hip,
-                "neckgirth": neckgirth,
-                "insideleg": insideleg,
-                "shoulder": shoulder,
-                "bodyheight": bodyheight
-                }
+        def hip_size():
+            a = vectors['right_hip_left_hip'] / 2
+            b = vectors['right_hip_left_hip'] / 3
+            hip = self.eclipse_circumference(a, b)
+            return hip
+
+        def bust_size():
+            sh = float(globals.shoulder_width)
+            print(sh)
+            a = sh * 0.9 / 2
+            b = sh * 0.9 / 4
+            bust = self.eclipse_circumference(a, b)
+            return bust
+
+        def underbust_size():
+            print(float(bust_size() * 0.95))
+            return float(bust_size() * 0.95)
+
+        def waist_size():
+            waist = hip_size() * 0.9
+            return waist
+
+        def insideleg_size():
+            insideleg = max(self.norm(vectors['hip_knee'][0]) + self.norm(vectors['knee_ankle'][0]), self.norm(
+                vectors['hip_knee'][1] + self.norm(vectors['knee_ankle'][1])))
+            return insideleg
+
+        bust = max(min(bust_size(), 113.0), 79.0)
+        underbust = max(min(underbust_size(), 101.0), 70.0)
+        waist = max(min(waist_size(), 113.0), 52.0)
+        hip = max(min(hip_size()*scale, 121.0), 79.0)
+        insideleg = max(min(insideleg_size()*scale, 95.0), 65.0)
+
+        return {
+            "bust": bust,
+            "underbust": underbust,
+            "waist": waist,
+            "hip": hip,
+            "neckgirth": 33.4,
+            "insideleg": insideleg,
+            "shoulder": globals.shoulder_width,
+            "bodyheight": 180
+        }
+
+    # def get_real_measurements(self, results, vectors, real_shoulder_width, front_image=None, left_image=None):
+
+    #     landmarks = results.pose_landmarks
+    #     mph_landmarks = mp_holistic.PoseLandmark
+    #     pixel_to_real_ratio = real_shoulder_width / \
+    #         self.norm(vectors['right_shoulder_left_shoulder'])
+
+    #     print(
+    #         f"vector : {self.norm(vectors['right_shoulder_left_shoulder'])}")
+    #     # Calculate real measurements
+    #     shoulders, hip, underbust, bust, waist, insideleg = 0, 0, 0, 0, 0, 0
+    #     if front_image:
+    #         shoulders += vectors['right_shoulder_left_shoulder'][0] * \
+    #             pixel_to_real_ratio * 2.1
+    #         hip += shoulders * 0.9
+    #         underbust += hip * 1.15
+    #         bust += self.norm(vectors['shoulder_hip']) * \
+    #             pixel_to_real_ratio * 2.2
+    #         waist += self.norm(
+    #             vectors['right_shoulder_left_shoulder']) * pixel_to_real_ratio * 0.85
+    #         insideleg += max(self.norm(vectors['hip_knee'][0]) + self.norm(vectors['knee_ankle'][0]), self.norm(
+    #             vectors['hip_knee'][1] + self.norm(vectors['knee_ankle'][1]))) * pixel_to_real_ratio
+
+    #     if left_image:
+    #         shoulders += vectors['right_shoulder_left_shoulder'][0] * \
+    #             pixel_to_real_ratio * 2.1
+    #         hip += shoulders * 0.9
+    #         underbust += hip * 1.15
+    #         bust += self.norm(vectors['shoulder_hip']) * \
+    #             pixel_to_real_ratio * 2.2
+    #         waist += self.norm(
+    #             vectors['right_shoulder_left_shoulder']) * pixel_to_real_ratio * 0.85
+    #         insideleg += max(self.norm(vectors['hip_knee'][0]) + self.norm(vectors['knee_ankle'][0]), self.norm(
+    #             vectors['hip_knee'][1] + self.norm(vectors['knee_ankle'][1]))) * pixel_to_real_ratio
+
+    #     bodyheight = 180.0
+    #     # Ensure the values are within the specified ranges
+    #     bust = max(min(bust, 113.0), 79.0)
+    #     underbust = max(min(underbust, 101.0), 70.0)
+    #     waist = max(min(waist, 113.0), 52.0)
+    #     hip = max(min(hip, 121.0), 79.0)
+    #     insideleg = max(min(insideleg, 95.0), 65.0)
+    #     shoulder = max(min(shoulder, 60.0), 29.0)
+
+    #     return {"bust": bust,
+    #             "underbust": underbust,
+    #             "waist": waist,
+    #             "hip": hip,
+    #             "neckgirth": 33.4,
+    #             "insideleg": insideleg,
+    #             "shoulder": shoulders,
+    #             "bodyheight": bodyheight
+    #             }
 
 
 class Body:
@@ -438,5 +513,4 @@ def process(image=None):
                 'image_width': image.shape[1],
                 'real_body_measurements': pdtk.get_real_measurements(results, vectors, float(globals.shoulder_width))
             }
-            print("aa! " + str(float(globals.shoulder_width)))
             return body, infos
